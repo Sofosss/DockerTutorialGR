@@ -52,8 +52,8 @@
 
 
 <figure markdown="1" style="display:flex;align-items:center;flex-direction:column;padding:2vh;">
-<img src="./images_media/docker_architecture.gif"  alt="docker_architecture" >
-<figcaption style="text-align:center;"><i>All rights reserved to </i><a href="https://vikasrajput.hashnode.dev/" alt = "Vikas Rajputin site">Vikas Rajputin</a></figcaption>
+<img src="./images_media/docker_architecture.gif"  alt="docker_architecture" width = 100%>
+<figcaption style="text-align:center;"><i>Gif source: </i><a href="https://vikasrajput.hashnode.dev/" alt = "Vikas Rajputin site">Vikas Rajputin</a></figcaption>
 </figure>
 
 
@@ -229,6 +229,10 @@ docker run -d --name express_server -p 8080:8891 nodejs_server:v0.1
 
 Ένα Docker container στον κορμό του χρησιμοποιεί ένα πολυεπίπεδο ιεαραρχικό σύστημα αρχείων(layered file system). Κάθε επίπεδο-στρώμα αντιπροσωπεύει ένα σύνολο από αλλαγές στα αρχεία. Τα επίπεδα αυτά στοιβάζονται το ένα πάνω στο άλλο με σκοπό την δημιουργία του τελικού συστήματος αρχείων του container.
 Μολονότι αυτή η προσέγγιση έχει ένα πλήθος πλεονεκτημάτων, μια βασική της συνέπεια είναι η διαγραφή των επιπέδων αυτών και των αντίστοιχων αρχείων κατά την διαγραφή ενός container.
+<figure markdown="1" style="display:flex;align-items:center;flex-direction:column;padding:2vh;">
+<img src="./images_media/layer_fs_2.png"  alt="layered FS img">
+<figcaption>Layered FS visualization</figcaption>
+</figure>
 Τα docker volumes είναι ένας μηχανισμός που εισάγεται για την διαχείριση του ζητήματος αυτού, καθώς αυτά παρακάμπτουν το ιεραρχικό σύστημα αρχείων. Πρόκειται για ειδικά ορισμένους καταλόγους που έχουν σκοπό τον διαμοιρασμό και την διατήρηση δεδομένων μεταξύ των διαφόρων containers, ανεξάρτητα από τον κύκλο ζωής τους. 
 
 Στην δική μας εφαρμογή, o server αποθηκεύει τα δεδομένα των εισερχόμενων HTTP αιτήσεων σε ένα JSON αρχείο. Επειδή το αρχείο αυτό είναι αποθηκευμένο σε ένα στρώμα(layer) στο περιβάλλον του container, όταν το container διαγραφτεί, θα διαγραφτεί κι αυτό μαζί του. Συνεπώς, θα χάσουμε τα δεδομένα του server. Για να αποφευχθεί η ανεπιθύμητη αυτή κατάσταση, δημιουργούμε ένα volume στον κατάλογο app/ του container, εκτελώντας τις παρακάτω εντολές

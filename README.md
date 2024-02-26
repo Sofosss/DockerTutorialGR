@@ -13,43 +13,42 @@
 [![License][license-badge]][license-link]
 
 # 🚩 Table of Contents
-* [Εισαγωγή στο Docker](#docker-introduction)
-* [Εγκατάσταση του Docker](#docker-installation)
-* [Βασικές εντολές Docker](#docker-commands)
+* [Εισαγωγή στο Docker](#εισαγωγή-στο-docker)
+* [Εγκατάσταση του Docker](#εγκατάσταση-του-docker)
+* [Βασικές εντολές Docker](#βασικές-εντολές-docker)
 * [Δημιουργία Dockerfile](#dockerfile-creation)
 * [Κατασκευή Εικόνας Docker](#docker-image-creation)
 * [Διαχείριση Docker Images](#docker-images)
 * [Docker Compose](#docker-compose)
 * [Κατασκευή Docker Volume](#docker-volume-creation)
 * [Διαχείριση Volumes](#docker-volumes)
-* [Προχωρημένες λειτουργίες Docker](#Advanced-docker-func)
-* [Case Studies](#Case-Studies)
+* [Προχωρημένες λειτουργίες Docker](#προχωρημένες-λειτουργίες-docker)
+* [Case Study](#case-study)
 
 
 # Εισαγωγή στο Docker
-##  Τι είναι Docker 
-Το Docker αποτελεί μια πλατφόρμα ανοικτού κώδικα που παρέχει εργαλεία για τον αυτοματισμό της διαδικασίας εγκατάστασης, ρύθμισης και εκτέλεσης εφαρμογών μέσω της χρήσης ελαφρών, φορητών εικονικών μηχανών, γνωστών ως "**containers**".
+##  Τι είναι το Docker 
+Το Docker αποτελεί μια πλατφόρμα ανοικτού κώδικα που παρέχει ένα σύνολο εργαλείων για τον αυτοματισμό της διαδικασίας ανάπτυξης, δοκιμής, εγκατάστασης, ρύθμισης και εκτέλεσης εφαρμογών μέσω της χρήσης ελαφρών(lightweight), φορητών εικονικών μηχανών, γνωστών ως "**containers**".
+Πρόκειται για πλήρως αυτόνομα περιβάλλοντα εκτέλεσης(runtime environments) που ενθυλακώνουν την εφαρμογή και όλες τις απαραίτητες εξαρτήσεις της. Παρέχουν απομόνωση, εξασφαλίζοντας ότι η εφαρμογή εκτελείται σε ένα φορητό και ανεξάρτητο 
+περιβάλλον, εξαλείφοντας με αυτόν τον τρόπο πιθανά προβλήματα ασυμβατότητας συστημάτων.
 
 ## Βασικά στοιχεία
-1. **Containers**:
-* Είναι εκτελέσιμα περιβάλλοντα(runtime environments) που περιλαμβάνουν την εφαρμογή και όλες τις απαραίτητες εξαρτήσεις της.
-* Προσφέρουν απομόνωση, εξασφαλίζοντας ότι η εφαρμογή εκτελείται με τον ίδιο τρόπο, ανεξάρτητα από το περιβάλλον εκτέλεσης.
-2. **Images**
+1. **Images**
 * Αποτελούν εκτελέσιμα πακέτα που περιέχουν την εφαρμογή, τις εξαρτήσεις και τις "οδηγίες" εκτέλεσης.
 * Οι εικόνες είναι ανεξάρτητες και μπορούν να κοινοποιούνται και να επαναχρησιμοποιούνται.
-3. **Dockerfile**
+2. **Dockerfile**
 * Αρχείο κειμένου που περιγράφει τα βήματα για τη δημιουργία μιας εικόνας Docker.
 * Περιέχει οδηγίες για την επιλογή της εικόνας βάσης, την εγκατάσταση εξαρτήσεων, τον καθορισμό του working directory και του σημείου εκκίνησης(entrypoint) κ.ά.
-4. **Docker Compose**
+3. **Docker Compose**
 * Επιτρέπει τον ορισμό και τη διαχείριση πολλαπλών containers ως μέρος μιας εφαρμογής.
 * Καθορίζει τις ρυθμίσεις, τις εξαρτήσεις και τις υπηρεσίες ενός περιβάλλοντος εκτέλεσης μέσω ενός YAML αρχείου. 
-5. **Volumes**
+4. **Volumes**
 * Διατηρούν και διαχειρίζονται δεδομένα μεταξύ του host machine και των containers.
 * Χρησιμοποιούνται για την αποφυγή απώλειας δεδομένων κατά την ανανέωση ή αντικατάσταση ενός container.
-6. **Networks**
+5. **Networks**
 * Επιτρέπουν την επικοινωνία μεταξύ διαφορετικών containers.
 * Ορίζουν περιβάλλοντα δικτύου για την ασφαλή επικοινωνία μεταξύ διαφορετικών εφαρμογών.
-7. **Docker Hub**
+6. **Docker Hub**
 * Διαδικτυακή υπηρεσία που παρέχει την δυνατότητα αποθήκευσης, διαμοιρασμού και αναζήτησης εικόνων Docker.
 
 
@@ -69,6 +68,28 @@ $ docker run hello-world
 ```bash
 $ docker version
 ```
+[!WARNING]
+Επειδή το Docker χρησιμοποιεί ***Unix socket*** το οποίο ανήκει στον root χρήστη του μηχανήματος, η χρήση του Docker CLI(Command Line) απαιτεί την
+χρήση του προσδιορισμού ***sudo***. Σε περίπτωση που κάτι τέτοιο δεν είναι επιθυμητό, χρειάζεται να προσθέσετε τον αντίστοιχο
+χρήστη σε ένα ***Unix group*** με την ονομασία **docker**. Η παραπάνω διαδικασία μπορεί να διεκπεραιωθεί μέσω της εκτέλεσης των παρακάτω εντολών:
+
+```bash
+# Δημιουργία του group docker(αν δεν υπάρχει ήδη)
+$ sudo groupadd docker
+
+# Προσθήκη του χρήστη στο group docker
+$ sudo usermod -aG docker $USER
+
+# Ενεργοποίηση αλλαγών για τα groups κάνοντας relogin και ελέγχος χρήσης docker χωρίς sudo
+$ docker run hello-world
+``` 
+[!CAUTION]
+Η εισαγωγή ενός χρήστη στο group Docker, του αναθέτει αυτόματα δικαιώματα επιπέδου διαχειριστή(root privileges). Επομένως, απαιτείται ιδιαίτερη προσοχή στους χρήστες που εισέρχονται στο συγκεκριμένο group.
+
+[!NOTE]
+Παρέχεται και η δυνατότητα χρήσης του Docker σε rootless mode. 
+Περισσότερες πληροφορίες μπορούν να αντληθούν από το επίσημο documentation του [Docker][Docker-rootless].
+
 
 # Βασικές Εντολές Docker
 ***docker pull [desired image]***: Kατεβάζει την επιθυμητή εικόνα από το αντίστοιχο Docker registry(Docker Hub) και την αποθηκεύει στο σύστημα του χρήστη. Για παράδειγμα, εκτελώντας την εντολή:
@@ -89,6 +110,16 @@ $ docker run -d --name my_first_container -p 8080:80 nginx
 ```
  δημιουργούμε ένα container που ονομάζεται ***my_first_container*** και χρησιμοποιούμε το flag **-d** προκειμένου το container να εκτελείται στο background και το flag **-p 8080:80** προκειμένου να συνδέσουμε τη θύρα 8080 του τοπικού συστήματός μας με τη θύρα 80 του container.
 
+***docker ps***: Εμφανίζει μία λίστα με τα ενεργά containers μαζί με πληροφορίες για αυτά, όπως το container ID, το όνομα, την κατάσταση του container, τις πόρτες που χρησιμοποιεί κ.ά.
+Για παράδειγμα, εκτελώντας, στο προσωπικό μας μηχάνημα την εντολή:
+```bash 
+$ docker ps 
+```
+θα λάβουμε ως επιστροφή μία λίστα όπως η παρακάτω:
+<figure markdown="1" style="display:flex;align-items:center;flex-direction:column;">
+<img src="./images_media/docker_ps.png"  alt="docker ps command" >
+<figcaption style="text-align:center;"><i>Figure 1</i></figcaption>
+</figure>
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
@@ -97,3 +128,4 @@ $ docker run -d --name my_first_container -p 8080:80 nginx
 [windows-link]:https://docs.docker.com/desktop/install/windows-install/
 [linux-link]: https://docs.docker.com/engine/install/ubuntu/
 [macos-link]: https://docs.docker.com/desktop/install/mac-install/
+[docker-rootless]: https://docs.docker.com/engine/security/rootless/

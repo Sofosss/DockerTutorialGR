@@ -20,7 +20,8 @@
 * [Docker Volumes](#docker-volume)
 * [Docker Networking](#docker-networking)
 * [Case Study](#case-study)
-
+* [Contact](#Contact)
+* [License](#License)
 
 # Εισαγωγή στο Docker
 ##  Τι είναι το Docker 
@@ -234,12 +235,13 @@ docker run -d --name express_server -p 8080:8891 nodejs_server:v0.1
 Στον κορμό του, ένα Docker container χρησιμοποιεί ένα πολυεπίπεδο ιεαραρχικό σύστημα αρχείων(layered file system). Κάθε επίπεδο-στρώμα αντιπροσωπεύει ένα σύνολο από αλλαγές στα αρχεία. Τα επίπεδα αυτά στοιβάζονται το ένα πάνω στο άλλο με σκοπό την δημιουργία του τελικού συστήματος αρχείων του container.
 Μολονότι αυτή η προσέγγιση έχει ένα πλήθος πλεονεκτημάτων, μια βασική της αδυναμία είναι η διαγραφή των επιπέδων αυτών και των αντίστοιχων αρχείων κατά την διαγραφή ενός container.
 
-<figure markdown="1" style="display:flex;align-items:center;flex-direction:column;padding:2vh;">
-<img src="./images_media/layer_fs_2.png"  alt="layered FS img">
-<figcaption  style="text-align:center;">Layered FS visualization</figcaption>
-</figure>
-
-
+<br>
+<p align="center">
+ <img src="./images_media/layer_fs_2.png"  alt="docker_architecture" width = 80%>
+    <br>
+    <em><i>Layered FS visualization</i></em>
+</p>
+</br>
 
 Τα docker volumes είναι ένας μηχανισμός που εισάγεται για την διαχείριση του ζητήματος αυτού, καθώς αυτά παρακάμπτουν το ιεραρχικό σύστημα αρχείων. Πρόκειται για ειδικά ορισμένους καταλόγους που έχουν σκοπό τον διαμοιρασμό και την διατήρηση δεδομένων μεταξύ των διαφόρων containers, ανεξάρτητα από τον κύκλο ζωής τους. 
 
@@ -294,13 +296,67 @@ docker volume rm [volume name]
 * Host: Άρει την συνθήκη απομόνωσης της στοίβας δικτύου του αντίστοιχου container, το οποίο πλέον δεν έχει δική του IP διεύθυνση αλλά μοιράζεται το ίδιο namespace δικτύου με τον host, χωρίς την εφαρμογή NAT(Network Address Translation). Οι υπηρεσίες των εφαρμογών του container γίνονται πλέον διαθέσιμες μέσω της IP του host στις θύρες τις οποίες κάνει EXPOSE το container. Συνεπώς, το port-mapping με το argument -p κατά τη δημιουργία του container(με χρήση του command run) παύει να έχει ισχύ.
 
 * Overlay: Δημιουργεί ένα κατανεμημένο δίκτυο μεταξύ πολλαπλών docker deamon hosts. Το δίκτυο αυτό περιβάλλει το δίκτυο του κάθε host, δίνοντας έτσι τη δυνατότητα επικοινωνίας μεταξύ containers (που εν δυνάμει ανήκουν σε διαφορετικούς hosts) που είναι συνδεδεμένα σε αυτό. Η μεταφορά πακέτων-μηνυμάτων μεταξύ Docker daemon host και container παραλήπτη διεκπεραιώνεται με πλήρη διαφάνεια από το Docker, παρέχοντας επίσης την δυνατότητα για κρυπτογράφηση για την επίτευξη ασφάλειας. 
+
 > [!INFORMATION]
 > Ο Overlay Driver χρησιμοποιείται κυρίως για τη διασύνδεση πολλαπλών [υπηρεσιών Swarm][docker-swarm-service-link], ένας μηχανισμός που υπάγεται στο [Docker Swarm mode][docker-swarm-mode-link], το οποίο δεν καλύπτεται στο παρόν tutorial.  
 
+Προκειμένου να κατασκευάσουμε ένα Docker δίκτυο αρκεί να εκτελέσουμε την εντολή:
+
+```bash
+docker network [network name]
+```
+
+Η δημιουργία και η ένταξη ενός container σε ένα συγκεκριμένο δίκτυο, πραγματοποιείται με την εκτέλεση της εντολής:
+
+```bash
+docker run -d --network [desired network name] --name [container name] [image name:tag]
+```
+
+Όλα τα networks που διαθέτει ο χρήστης στο σύστημά του μπορούν να εμφανιστούν με την εκτέλεση της εντολής:
+
+```bash
+docker network ls
+```
+ενώ η επισκόπηση των πληροφοριών ενός συγκεκριμένου network είναι εφικτή μέσω της εκτέλεσης της εντολής:
+
+```bash
+docker network inspect [network name]
+```
+Η σύνδεση ενός container σε ένα συγκεκριμένο network είναι εφικτή μέσω της εκτέλεσης της εντολής:
+
+```bash
+docker network connect [network name] [container name]
+```
+Η αποσύνδεση ενός container από ένα network είναι εφικτή μέσω της εκτέλεσης της εντολής:
+
+```bash
+docker network disconnect [network name] [container name]
+```
+Η διαγραφή ενός συγκεριμένου network, εφόσον δεν υπάρχει ενεργό container που να ανήκει σε αυτό, πραγματοποιείται με την εκτέλεση της εντολής:
+
+```bash
+docker network rm [network name]
+```
+Τέλος, η διαγραφή όλων των ανενεργών δικτύων του συστήματος πραγματοποιείται με την εκτέλεση της εντολής:
+
+```bash
+docker network prune
+```
+Η εντολή αυτή είναι χρήσιμη για τον καθαρισμό του συστήματός σας από δίκτυα που δεν χρησιμοποιούνται πλέον, εξοικονομώντας έτσι χώρο και πόρους.
 
 
 
+# Contact
 
+### Authors:
+
+- Metaxakis Dimitris | <a href="mailto:d.metaxakis@ac.upatras.gr">d.metaxakis@ac.upatras.gr</a>
+- Sofotasios Argiris | <a href="mailto:a.sofotasios@ac.upatras.gr">a.sofotasios@ac.upatras.gr</a>
+
+
+# License
+
+Distributed under the [MIT] License. See `LICENSE.md` for more details.
 
 
 <!-- MARKDOWN LINKS & IMAGES -->

@@ -7,11 +7,12 @@ LABEL maintainer="Argiris Sofotasios & Dimitris Metaxakis"
 LABEL description="A simple Web app."
 
 ENV NODE_PORT=8891
+ENV VOLUME_DIR="/opt/data_per"
 
 WORKDIR /app
 COPY . /app
 
-RUN npm install express body-parser
+RUN npm install express body-parser path
 
 EXPOSE 8891
 

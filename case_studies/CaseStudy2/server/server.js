@@ -5,8 +5,8 @@ const path = require("path");
 
 
 const app = express();
-const port = process.env.NODE_PORT || 8891;
-const directory = process.env.VOLUME_DIR || "/opt/data_per";
+const port = process.env.NODE_PORT || 8899;
+const directory = process.env.VOLUME_DIR || "/opt/users";
 // Middleware to parse JSON in the request body
 app.use(bodyParser.json());
 
@@ -45,7 +45,6 @@ app.post('/writeToFile', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);

@@ -12,7 +12,7 @@
 
 [![License][license-badge]][license-link]
 
-# 🚩 Table of Contents
+# 🚩 Περιεχόμενα
 * [Εισαγωγή στο Docker](#εισαγωγή-στο-docker)
 * [Εγκατάσταση του Docker](#εγκατάσταση-του-docker)
 * [Βασικές εντολές Docker](#βασικές-εντολές-docker)
@@ -265,22 +265,27 @@ docker run -d --name express_server -p 8080:8891 -v "$(pwd)"/data_per:/opt/data_
 Τέτοιου είδους volumes μπορούν να δημιουργηθούν με την εκτέλεση της εντολής:
 
 ```bash
-docker volume create [volume name]
+docker volume create [OPTIONS] [VOLUME]
 ```
 Όλα τα volumes που διαθέτει ο χρήστης στο σύστημά του μπορούν να εμφανιστούν με την εκτέλεση της εντολής:
 
 ```bash
-docker volume ls
+docker volume ls [OPTIONS]
 ```
 ενώ η επισκόπηση των πληροφοριών ενός συγκεκριμένου volume είναι εφικτή μέσω της εκτέλεσης της εντολής:
 
 ```bash
-docker volume inspect [volume name]
+docker volume inspect [OPTIONS] VOLUME [VOLUME...]
 ```
-Τέλος η διαγραφή ενός volume, εφόσον δεν υπάρχει ενεργό container που να το χρησιμοποιεί, πραγματοποιείται με την εκτέλεση της εντολής:
+Η διαγραφή ενός volume, εφόσον δεν υπάρχει ενεργό container που να το χρησιμοποιεί, πραγματοποιείται με την εκτέλεση της εντολής:
 
 ```bash
-docker volume rm [volume name]
+docker volume rm [OPTIONS] VOLUME [VOLUME...]
+```
+Τέλος, η διαγραφή όλων των ανενεργών(unused) volumes του συστήματος πραγματοποιείται με την εκτέλεση της εντολής:
+
+```bash
+docker volume prune [OPTIONS]
 ```
 
 
@@ -303,48 +308,113 @@ docker volume rm [volume name]
 Προκειμένου να κατασκευάσουμε ένα Docker δίκτυο αρκεί να εκτελέσουμε την εντολή:
 
 ```bash
-docker network [network name]
+docker network create [OPTIONS] NETWORK
 ```
 
 Η δημιουργία και η ένταξη ενός container σε ένα συγκεκριμένο δίκτυο, πραγματοποιείται με την εκτέλεση της εντολής:
 
 ```bash
-docker run -d --network [desired network name] --name [container name] [image name:tag]
+docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
 ```
 
 Όλα τα networks που διαθέτει ο χρήστης στο σύστημά του μπορούν να εμφανιστούν με την εκτέλεση της εντολής:
 
 ```bash
-docker network ls
+docker network ls [OPTIONS]
 ```
 ενώ η επισκόπηση των πληροφοριών ενός συγκεκριμένου network είναι εφικτή μέσω της εκτέλεσης της εντολής:
 
 ```bash
-docker network inspect [network name]
+docker network inspect [OPTIONS] NETWORK [NETWORK...]
 ```
 Η σύνδεση ενός container σε ένα συγκεκριμένο network είναι εφικτή μέσω της εκτέλεσης της εντολής:
 
 ```bash
-docker network connect [network name] [container name]
+docker network connect [OPTIONS] NETWORK CONTAINER
 ```
 Η αποσύνδεση ενός container από ένα network είναι εφικτή μέσω της εκτέλεσης της εντολής:
 
 ```bash
-docker network disconnect [network name] [container name]
+docker network disconnect [OPTIONS] NETWORK CONTAINER
 ```
 Η διαγραφή ενός συγκεριμένου network, εφόσον δεν υπάρχει ενεργό container που να ανήκει σε αυτό, πραγματοποιείται με την εκτέλεση της εντολής:
 
 ```bash
-docker network rm [network name]
+docker network rm NETWORK [NETWORK...]
 ```
 Τέλος, η διαγραφή όλων των ανενεργών δικτύων του συστήματος πραγματοποιείται με την εκτέλεση της εντολής:
 
 ```bash
-docker network prune
+docker network prune [OPTIONS]
 ```
 Η εντολή αυτή είναι χρήσιμη για τον καθαρισμό του συστήματός σας από δίκτυα που δεν χρησιμοποιούνται πλέον, εξοικονομώντας έτσι χώρο και πόρους.
 
+Για να γίνει κατανοητός ο τρόπος με τον οποίο λειτουργεί ένα Docker Network, θα παρουσιάσουμε ένα παράδειγμα στο οποίο θα δημιουργείται ένα Docker Network με δύο containers. Το πρώτο container θα λειτουργεί ως server και θα έχει την λειτουργία που είχε και το αντίστοιχο container στο παράδειγμα με τα Volumes(Case Study 1). Το δεύτερο container θα λειτουργεί ως client. Μέσω κλήσης σε εξωτερικό API θα αποκτά ένα σύνολο δεδομένων, τα οποία στη συνέχεια θα στέλνει μέσω HTTP Requests στο server container ανά διαστήματα. Όπως και στο Case study 1, το container του server αποθηκεύει τα δεδομένα αυτά σε ένα JSON αρχείο που είναι persistent(εξαιτίας του volume που δημιουργήθηκε).
 
+Τα Dockerfiles του συγκεκριμένου παραδείγματος βρίσκονται στον κατάλογο case_studies/CaseStudy2. 
+
+
+Θα πρέπει να σημειωθεί ότι η αλληλεπίδραση του χρήστη με τον Docker Deamon καθίσταται δυνατή και μέσω  
+
+
+```bash
+
+cd CaseStudy2
+
+# Δημιουργία Docker network
+docker network create sample_network
+
+# Δημιουργία των Docker images 
+cd server
+docker build -t node_image .
+cd ../client
+docker built -t ubuntu_client_image .
+
+# Δημιουργία και εκκίνηση server container
+cd ../
+mkdir users
+docker run -d --name node_server --net sample_network -v "$(pwd)"/users:/opt/user_data node_image
+
+# Δημιουργία και εκκίνηση client container
+docker run --rm -d --name node_client --net sample_network  ubuntu_client_image
+
+
+```
+
+Στο παρακάτω gif παρατίθενται τα logs των δύο containers(αριστερά αυτό του server και δεξιά το αντίστοιχο του client):
+
+![](./images_media/case_study_2.gif)
+
+Παρατηρούμε ότι ο client αποκτά τα απαραίτητα δεδομένα και στη συνέχεια ανά συγκεκριμένες χρονικές στιγμές πραγματοποιεί HTTP αιτήσεις στον server παρέχοντάς του ως πληροφορία μερικό αριθμό εγγραφών των δεδομένων του. Ο server λαμβάνει τις αιτήσεις του client και εγγράφει τις ληφθείσες εγγραφές σε ένα αρχείο στο volume.
+ 
+Ακολούθως θα δείξουμε την δυνατότητα αλληλεπίδρασης με το Docker Deamon μέσω ενός SDK(Software Develpoment Kit) στην Python. Πιο συγκεκριμένα, θα δημιουργήσουμε ένα Docker Network ως εξής:
+
+```python
+def setup_docker_net(client, netname: str, networkOptions: dict): 
+    try: 
+        docker_network = client.networks.list(names = netname)
+
+        # Επιστροφή αντικειμένου που αναπαριστά το δίκτυο σε περίπτωση που αυτό υπάρχει
+        if len(docker_network) > 0:
+            print(f"Network: {netname} already exists. Proceeding...")
+            return docker_network[0]
+
+        # Δημιουργία και επιστροφή του δικτύου βάσει ορισμένων παραμέτρων
+        print(f"Network: {netname} does not exist. Creating...")
+        ipam_pool = docker.types.IPAMPool(
+            subnet = networkOptions['subnet'],
+            gateway =  networkOptions['gateway'],
+            iprange = networkOptions['ip_range']
+        )
+        ipam_config = docker.types.IPAMConfig(
+            pool_configs = [ipam_pool]
+        )
+        return client.networks.create(netname, driver = "bridge", ipam = ipam_config)
+    
+    except docker.errors.APIError as e:
+        print(f"Error occured while creating the network: {e}")
+
+```
 
 # Contact
 

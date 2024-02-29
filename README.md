@@ -421,13 +421,13 @@ def setup_docker_net(client, netname: str, networkOptions: dict):
 
 Προκειμένου να χρησιμοποιήσουμε στην πράξη οτιδήποτε ειπώθηκε στο tutorial, θα εκτελέσουμε ένα τελικό case study(case_studies/CaseStudy3). Θα δημιουργήσουμε τρία containers τα οποία θα ανήκουν στο ίδιο δίκτυο(network) και θα λειτουργούν συνεργατικά για να παρέχουν μια σχετικά απλή υπηρεσία. 
 
-Το πρώτο container θα λειτουργεί ως server, διαχειρίζοντας HTTP αιτήσεις από διάφορους clients. Πιο συγκεκριμένα, θα δέχεται, αναλύει και επεξεργάζεται αιτήματα από τους χρήστες προς την υπηρεσία, θα είναι υπεύθυνο για την ταυτοποίηση χρηστών της υπηρεσίας, θα ελέγχει την πρόσβαση χρηστών σε πόρους της υπηρεσίας βάσει των [JWTs][JWT-link](JSON Web Tokens) που διατηρούν και θα καταγράφει σε συγκεκριμένη μορφής αρχείο πιθανή ύποπτη κίνηση εντός της υπηρεσίας. Το δεύτερο container θα στηρίζει τη βάση δεδομένων της υπηρεσίας, χρησιμοποιώντας μία [MongoDB][MongoDB-link] για την αποθήκευση των χρηστών της. Τέλος, το τρίτο container θα διαδραματίζει τον ρόλο του logger. Συγκεκριμένα, θα παρακολουθεί(monitoring) το αρχείο στο οποίο εγγράφει ο server πιθανή ύποπτη κίνηση εντός της υπηρεσίας και θα καταγράφει στο τερματικό(terminal) του οποιαδήποτε αλλαγή(προσθήκη εγγραφής) σ' αυτό. Η παρακολούθηση του αρχείου του server μέσω του logger θα πραγματοποιηθεί με τη χρήση ενός Docker Volume.
+Το πρώτο container θα λειτουργεί ως server, διαχειρίζοντας HTTP αιτήσεις από διάφορους clients. Πιο συγκεκριμένα, θα δέχεται, αναλύει και επεξεργάζεται αιτήματα από τους χρήστες προς την υπηρεσία, θα είναι υπεύθυνο για την ταυτοποίηση χρηστών της υπηρεσίας, θα ελέγχει την πρόσβαση χρηστών σε πόρους της υπηρεσίας βάσει των [JWTs][JWT-link](JSON Web Tokens) που διατηρούν και θα καταγράφει σε συγκεκριμένη μορφής αρχείο log πιθανή ύποπτη κίνηση εντός της υπηρεσίας. Το δεύτερο container θα στηρίζει τη βάση δεδομένων της υπηρεσίας, χρησιμοποιώντας [MongoDB][MongoDB-link] για την αποθήκευση των χρηστών της. Τέλος, το τρίτο container θα διαδραματίζει τον ρόλο του logger. Συγκεκριμένα, θα παρακολουθεί(monitoring) το αρχείο στο οποίο εγγράφει ο server πιθανή ύποπτη κίνηση εντός της υπηρεσίας και θα καταγράφει στο stdout(standard output) του οποιαδήποτε αλλαγή(προσθήκη εγγραφής) σ' αυτό. Η δυνατότητα αυτή θα επιτευχθεί μέσω της παρακολούθησης ενός διαμοιρασμένου αρχείου log του server με τη χρήση ενός Docker Volume.
 
-Η παρακάτω εικόνα αποτυπώνει την αρχιτεκτονική της υπηρεσίας που επιθυμούμε να δημιουργήσουμε:
+Η παρακάτω εικόνα αποτυπώνει την αρχιτεκτονική της υπηρεσίας για τα δύο βασικά endpoints που επιθυμούμε να δημιουργήσουμε:
 
 <br>
 <p align="center">
- <img src="./images_media/case_study_3.jpg"  alt="docker_architecture" width = 80%>
+ <img src="./images_media/case_study_3_architecture.jpg"  alt="docker_architecture" width = 80%>
     <br>
     <em><i>Case Study 3 architecture</i></em>
 </p>
@@ -442,7 +442,7 @@ def setup_docker_net(client, netname: str, networkOptions: dict):
 docker network create cstd3
 ```
 
-Στη συνέχεια θα δημιουργήσουμε το container που αντιστοιχεί στον server της υπηρεσίας. Η εικόνα που θα χρησιμοποιηθεί για την κατασκευή του δομείται βάσει του Dockerfile στον κατάλογο case_studies/CaseStudy3/webserver. Ο server θα "ακούει" στην θύρα 8891 και θα ανήκει στο δίκτυο **cstd3**. Η κατασκευή της εικόνας και η δημιουργία του container εκτελείται ως εξής:
+Στη συνέχεια θα δημιουργήσουμε το container που αντιστοιχεί στον server της υπηρεσίας. Η εικόνα που θα χρησιμοποιηθεί για την κατασκευή του δομείται βάσει του [Dockerfile][dockerfile-1]. Ο server θα "ακούει" στην θύρα 8891 και θα ανήκει στο δίκτυο **cstd3**. Η κατασκευή της εικόνας και η δημιουργία του container εκτελείται ως εξής:
 
 ```python
 cd case_studies/Casestudy3/webserver
@@ -454,7 +454,7 @@ docker build -t fserver_image:v0.1 .
 docker run -d --name fapi_server --network cstd3 -p 8891:8891 fserver_image:v0.1
 ```
 
-Η δημιουργία του container που θα υποστηρίζει την λειτουργία της βάσης δεδομένων της υπηρεσίας, θα στηριχθεί στην εικόνα που δομείται βάσει του Dockerfile στον κατάλογο case_studies/CaseStudy3/db. Προφανώς και αυτό το container, θα ανήκει στο δίκτυο cstd3. Η κατασκευή της εικόνας και η δημιουργία του container εκτελείται ως εξής:
+Η δημιουργία του container που θα υποστηρίζει την λειτουργία της βάσης δεδομένων της υπηρεσίας, θα στηριχθεί στην εικόνα που δομείται βάσει του [Dockerfile][dockerfile-2]. Προφανώς και αυτό το container, θα ανήκει στο δίκτυο cstd3. Η κατασκευή της εικόνας και η δημιουργία του container εκτελείται ως εξής:
 
 ```python
 cd case_studies/Casestudy3/db
@@ -466,7 +466,7 @@ docker build -t cstd_mongo_image:v0.1 .
 docker run -d --name mongodb_node --network cstd3 cstd_mongo_image:v0.1
 ```
 
-Τέλος, το τρίτο container που θα δημιουργηθεί και θα ενταχθεί στο δίκτυο cstd3 είναι αυτό του logger. Κατά τη δημιουργία του, θα του γίνουν mount όλα τα mounted volumes του server container. Αιτία της συγκεκριμένης ενέργειας αποτελεί η ανάγκη πρόσβασης του logger container στο αρχείο που εγγράφει ο server τις παρατηρήσεις του σχετικά με πιθανή ύποπτη κίνηση στην υπηρεσία. Η εικόνα του logger container βασίζεται στο Dockerfile στον κατάλογο case_studies/CaseStudy3/logstash. Η κατασκευή της εικόνας και η δημιουργία του logger container εκτελείται ως εξής:
+Τέλος, το τρίτο container που θα δημιουργηθεί και θα ενταχθεί στο δίκτυο cstd3 είναι αυτό του logger. Κατά τη δημιουργία του, θα του γίνουν mount όλα τα mounted volumes του server container. Αιτία της συγκεκριμένης ενέργειας αποτελεί η ανάγκη πρόσβασης του logger container στο αρχείο που εγγράφει ο server τις παρατηρήσεις του σχετικά με πιθανή ύποπτη κίνηση στην υπηρεσία. Η εικόνα του logger container βασίζεται στο [Dockerfile][dockerfile-3]. Η κατασκευή της εικόνας και η δημιουργία του logger container εκτελείται ως εξής:
 
 ```python
 cd case_studies/Casestudy3/logstash
@@ -516,3 +516,6 @@ Distributed under the [MIT] License. See `LICENSE.md` for more details.
 [MongoDB-link]: https://www.mongodb.com/
 [thunder-client-link]: https://www.thunderclient.com/
 [vscode-link]: https://code.visualstudio.com/
+[dockerfile-1]: /case_studies/CaseStudy3/webserver/Dockerfile
+[dockerfile-2]: /case_studies/CaseStudy3/db/Dockerfile
+[dockerfile-3]: /case_studies/CaseStudy3/logstash/Dockerfile

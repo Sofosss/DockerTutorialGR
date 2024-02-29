@@ -6,7 +6,7 @@
 </h1>
 
 <h3 align="center">
-<i>This repository serves as a beginner's tutorial on Docker in Greek. It provides concise guidance on Docker fundamentals, including the creation of Dockerfiles, building images, running containers and sharing images.</i>
+<i>This repository serves as a beginner's tutorial on Docker in Greek. It provides concise guidance on Docker fundamentals, including the creation of Dockerfiles, building images, running containers and sharing data between them.</i>
 </h3>
 <br>
 
@@ -373,10 +373,10 @@ docker built -t ubuntu_client_image .
 # Δημιουργία και εκκίνηση server container
 cd ../
 mkdir users
-docker run -d --name node_server --net sample_network -v "$(pwd)"/users:/opt/user_data node_image
+docker run -d --name node_server --network sample_network -v "$(pwd)"/users:/opt/user_data node_image
 
 # Δημιουργία και εκκίνηση client container
-docker run --rm -d --name node_client --net sample_network  ubuntu_client_image
+docker run --rm -d --name node_client --network sample_network  ubuntu_client_image
 
 
 ```
@@ -387,7 +387,7 @@ docker run --rm -d --name node_client --net sample_network  ubuntu_client_image
 
 Παρατηρούμε ότι ο client αποκτά τα απαραίτητα δεδομένα και στη συνέχεια ανά συγκεκριμένες χρονικές στιγμές πραγματοποιεί HTTP αιτήσεις στον server παρέχοντάς του ως πληροφορία μερικό αριθμό εγγραφών των δεδομένων του. Ο server λαμβάνει τις αιτήσεις του client και εγγράφει τις ληφθείσες εγγραφές σε ένα αρχείο στο volume.
  
-Ακολούθως θα δείξουμε την δυνατότητα αλληλεπίδρασης με το Docker Deamon μέσω ενός SDK(Software Develpoment Kit) στην Python. Πιο συγκεκριμένα, θα δημιουργήσουμε ένα Docker Network ως εξής:
+Μέχρι τώρα είδαμε την επικοινωνία του Client με τον Docker Deamon μέσω του CLI. Για λόγους πληρότητας. ακολούθως θα δείξουμε και ένα παράδειγμα που αξιοποιεί την δυνατότητα αλληλεπίδρασης με το Docker Deamon μέσω ενός SDK(Software Develpoment Kit) στην Python. Πιο συγκεκριμένα, θα δημιουργήσουμε ένα Docker Network ως εξής:
 
 ```python
 def setup_docker_net(client, netname: str, networkOptions: dict): 
@@ -416,6 +416,78 @@ def setup_docker_net(client, netname: str, networkOptions: dict):
 
 ```
 
+
+# Case Study
+
+Προκειμένου να χρησιμοποιήσουμε στην πράξη οτιδήποτε ειπώθηκε στο tutorial, θα εκτελέσουμε ένα τελικό case study(case_studies/CaseStudy3). Θα δημιουργήσουμε τρία containers τα οποία θα ανήκουν στο ίδιο δίκτυο(network) και θα λειτουργούν συνεργατικά για να παρέχουν μια σχετικά απλή υπηρεσία. 
+
+Το πρώτο container θα λειτουργεί ως server, διαχειρίζοντας HTTP αιτήσεις από διάφορους clients. Πιο συγκεκριμένα, θα δέχεται, αναλύει και επεξεργάζεται αιτήματα από τους χρήστες προς την υπηρεσία, θα είναι υπεύθυνο για την ταυτοποίηση χρηστών της υπηρεσίας, θα ελέγχει την πρόσβαση χρηστών σε πόρους της υπηρεσίας βάσει των [JWTs][JWT-link](JSON Web Tokens) που διατηρούν και θα καταγράφει σε συγκεκριμένη μορφής αρχείο πιθανή ύποπτη κίνηση εντός της υπηρεσίας. Το δεύτερο container θα στηρίζει τη βάση δεδομένων της υπηρεσίας, χρησιμοποιώντας μία [MongoDB][MongoDB-link] για την αποθήκευση των χρηστών της. Τέλος, το τρίτο container θα διαδραματίζει τον ρόλο του logger. Συγκεκριμένα, θα παρακολουθεί(monitoring) το αρχείο στο οποίο εγγράφει ο server πιθανή ύποπτη κίνηση εντός της υπηρεσίας και θα καταγράφει στο τερματικό(terminal) του οποιαδήποτε αλλαγή(προσθήκη εγγραφής) σ' αυτό. Η παρακολούθηση του αρχείου του server μέσω του logger θα πραγματοποιηθεί με τη χρήση ενός Docker Volume.
+
+Η παρακάτω εικόνα αποτυπώνει την αρχιτεκτονική της υπηρεσίας που επιθυμούμε να δημιουργήσουμε:
+
+<br>
+<p align="center">
+ <img src="./images_media/case_study_3.jpg"  alt="docker_architecture" width = 80%>
+    <br>
+    <em><i>Case Study 3 architecture</i></em>
+</p>
+</br>
+
+
+Για να υλοποιηθεί το παραπάνω case study, θα πρέπει να εκτελέσουμε τα παρακάτω βήματα:
+
+Αρχικά θα πρέπει να δημιουργήσουμε ένα Docker Network εντός του οποίου θα εντάξουμε αργότερα τα Docker Containers που θα κατασκευάσουμε. Η δημιουργία του δικτύου εκτελείται ως εξής:
+
+```python
+docker network create cstd3
+```
+
+Στη συνέχεια θα δημιουργήσουμε το container που αντιστοιχεί στον server της υπηρεσίας. Η εικόνα που θα χρησιμοποιηθεί για την κατασκευή του δομείται βάσει του Dockerfile στον κατάλογο case_studies/CaseStudy3/webserver. Ο server θα "ακούει" στην θύρα 8891 και θα ανήκει στο δίκτυο **cstd3**. Η κατασκευή της εικόνας και η δημιουργία του container εκτελείται ως εξής:
+
+```python
+cd case_studies/Casestudy3/webserver
+
+# Κατασκευή της εικόνας του server
+docker build -t fserver_image:v0.1 .
+
+# Δημιουργία του server container
+docker run -d --name fapi_server --network cstd3 -p 8891:8891 fserver_image:v0.1
+```
+
+Η δημιουργία του container που θα υποστηρίζει την λειτουργία της βάσης δεδομένων της υπηρεσίας, θα στηριχθεί στην εικόνα που δομείται βάσει του Dockerfile στον κατάλογο case_studies/CaseStudy3/db. Προφανώς και αυτό το container, θα ανήκει στο δίκτυο cstd3. Η κατασκευή της εικόνας και η δημιουργία του container εκτελείται ως εξής:
+
+```python
+cd case_studies/Casestudy3/db
+
+# Κατασκευή της εικόνας του db 
+docker build -t cstd_mongo_image:v0.1 .
+
+# Δημιουργία του db container
+docker run -d --name mongodb_node --network cstd3 cstd_mongo_image:v0.1
+```
+
+Τέλος, το τρίτο container που θα δημιουργηθεί και θα ενταχθεί στο δίκτυο cstd3 είναι αυτό του logger. Κατά τη δημιουργία του, θα του γίνουν mount όλα τα mounted volumes του server container. Αιτία της συγκεκριμένης ενέργειας αποτελεί η ανάγκη πρόσβασης του logger container στο αρχείο που εγγράφει ο server τις παρατηρήσεις του σχετικά με πιθανή ύποπτη κίνηση στην υπηρεσία. Η εικόνα του logger container βασίζεται στο Dockerfile στον κατάλογο case_studies/CaseStudy3/logstash. Η κατασκευή της εικόνας και η δημιουργία του logger container εκτελείται ως εξής:
+
+```python
+cd case_studies/Casestudy3/logstash
+
+# Κατασκευή της εικόνας του logger 
+docker build -t logstash_image:v0.1 .
+
+# Δημιουργία του logger container
+docker run -d --name logger --net cstd3 --volumes-from fapi_server -p 9600:9600 logstash_image:v0.1
+```
+
+Αφότου εκτελέσουμε τα παραπάνω βήματα, είναι εφικτό να ελέγξουμε την λειτουργία του δικτύου containers που δημιουργήσαμε χρησμοποιώντας το extension [Thunder Client][thunder-client-link] από το περιβάλλον ανάπτυξης του [VSCode][vscode-link](Visual Studio Code). 
+Αρχικά θα πραγματοποιήσουμε ένα ΗΤΤP POST αίτημα στον server στο /register route path με κατάλληλo body, έτσι ώστε να εντάξουμε έναν χρήστη στην υπηρεσία. Στη συνέχεια, με το access token που θα λάβει ο συγκεκριμένος χρήστης θα προσπαθήσουμε να αποκτήσουμε πρόσβαση(μέσω HTTP GET αιτήματος) στο /hidden_resource route path. Επειδή ο χρήστης έχει ταυτοποιηθεί και έχει ενεργό access token, θα του επιτραπεί η πρόσβαση στον "hidden" πόρο.
+Έπειτα, θα προσπαθήσουμε να αποκτήσουμε πρόσβαση(μέσω HTTP GET αιτήματος) στο /hidden_resource route path χρησιμοποιώντας invalid access token και θα δούμε ότι η υπηρεσία δεν θα μας επιτρέψει την πρόσβαση και θα καταγράψει την κίνηση αυτή ως ύποπτη. Έτσι, ο logger θα εμφανίσει στο τερματικό του την ενέργεια αυτή. Τέλος, θα εκτελέσουμε ένα  HTTP GET αίτημα στο /hidden_resource route path χωρίς access token. Θα δούμε ότι και σ' αυτή την περίπτωση η υπηρεσία δεν θα μας επιτρέψει την πρόσβαση και θα καταγράψει την κίνηση αυτή ως ύποπτη.
+
+Στο παρακάτω gif εκτελούνται όλες οι ενέργειες που αναφέρθηκαν παραπάνω προκειμένου να γίνει έλεγχος της λειτουργίας της υπηρεσίας:
+![](./images_media/case_study_3.gif)
+
+Παρατηρούμε ότι η υπηρεσία μας λειτουργεί όπως επιθυμούσαμε. Όταν εντοπίζεται από το server ύποπτη κίνηση, την καταχωρεί σε ένα αρχείο το οποίο επιβλέπει ο logger που με τη σειρά του την εμφανίζει στο τερματικό του. Επίσης, κάθε καινούριος χρήστης αποθηκεύεται ορθά στη βάση δεδομένων του αντίστοιχου container. 
+
+
 # Contact
 
 ### Authors:
@@ -440,3 +512,7 @@ Distributed under the [MIT] License. See `LICENSE.md` for more details.
 [node-app]: ./case_studies/CaseStudy1/server.js
 [docker-swarm-mode-link]: https://docs.docker.com/engine/swarm/
 [docker-swarm-service-link]: https://docs.docker.com/engine/swarm/networking/
+[JWT-link]: https://jwt.io/
+[MongoDB-link]: https://www.mongodb.com/
+[thunder-client-link]: https://www.thunderclient.com/
+[vscode-link]: https://code.visualstudio.com/

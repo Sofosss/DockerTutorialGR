@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# Script to fetch user data from an API and make POST requests to a server container.
+
 api_url="https://jsonplaceholder.typicode.com/users"
 post_url="${SERVER_NAME}:${SERVER_PORT}/writeToFile"  
 
 # Make the API call to fetch user data
 api_response=$(curl -s "$api_url")
 
+# Check if the API call was successful
 if [ $? -eq 0 ]; then
     # Parse JSON data using jq
     users=$(echo "$api_response" | jq -c '.')
@@ -14,14 +17,13 @@ if [ $? -eq 0 ]; then
     # echo "$json_data"
     
     # Make the POST request using curl with the fetched JSON data
-
     echo "$users" | jq -c '.[] | {id, name, email, phone}' | while read -r obj; do
         # Perform a request on each sub-object
         echo "Making a request for record: $obj"
         curl -X POST -H "Content-Type: application/json" -d "$obj" "$post_url"
 
-
-    sleep 2
+        # Sleep for 2 seconds between requests
+        sleep 2
     done
    
 

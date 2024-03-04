@@ -1,3 +1,4 @@
+# Import necessary modules and classes
 from typing import Union
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import (FastAPI,
@@ -15,8 +16,11 @@ import subprocess
 from customlogger import requests_logger
 import httpx
 
+# Create a FastAPI app instance
 app = FastAPI()
- 
+
+
+# Set constants for JWT and MongoDB configurations
 JWT_EXPIRATION_MINUTES = 15
 ALGORITHM = "HS256"
 # Obviously, hardcoding the password is not a good practice.
@@ -25,20 +29,23 @@ MONGO_URL = f'''mongodb://admin:dummyPassword123@{os.environ.get("MONGODB_HOST",
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
-
+# Set up MongoDB client and database
 CLIENT = AsyncIOMotorClient(MONGO_URL)
 DB_NAME = os.environ.get("DBNAME", "CaseStudy3")
 db: AsyncIOMotorClient = CLIENT[DB_NAME]
 
-
+# Define Pydantic model for User
 class User(BaseModel):
     email: str
     passw: str
 
 
+# Define function to get MongoDB client
 def get_db() -> AsyncIOMotorClient:
     return db
 
+
+# Define function to extract JWT token from Authorization header
 def extract_token(bearer_token: str):
     try:
         scheme, token = bearer_token.split()
@@ -52,6 +59,8 @@ def extract_token(bearer_token: str):
 
     return token
 
+
+# Define authentication function
 async def auth(request: Request,db: AsyncIOMotorClient = Depends(get_db) ): 
     
    
@@ -84,7 +93,7 @@ async def auth(request: Request,db: AsyncIOMotorClient = Depends(get_db) ):
         return False, e.detail
 
 
-
+# Define function to create JWT access token
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
 
@@ -101,7 +110,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 
-
+# Endpoint to authenticate a current user or to register a new user
 @app.post("/register")
 async def register(user: User, request: Request, response: Response, db: AsyncIOMotorClient = Depends(get_db) ):
     
@@ -133,6 +142,7 @@ async def register(user: User, request: Request, response: Response, db: AsyncIO
     return {"access_token": access_token, "token_type": "bearer",}
 
 
+# Async function to fetch a random quote from an external API
 async def get_random_quote():
     async with httpx.AsyncClient() as client:
         response = await client.get('https://api.quotable.io/random')
@@ -143,7 +153,7 @@ async def get_random_quote():
             return {"External error": "Unable to fetch random quote"}
 
 
-
+# Endpoint to fetch a hidden resource (requires authentication)
 @app.get("/hidden_resource")
 async def fetch_resource(response: Response, request: Request, auth_approval:tuple[bool,str] = Depends(auth)):
 
@@ -152,12 +162,12 @@ async def fetch_resource(response: Response, request: Request, auth_approval:tup
     print(f"auth_approval: {auth_approval}")
     print(f"client's ip:{request.client.host}")
     if auth:
-        # fetch random quote logic
+        # Fetch random quote logic
         random_quote = await get_random_quote()
 
         return random_quote
     else:
-        # write to log file
+        # Write to log file
         requests_logger.critical(f"{e}", extra = {"clientip": request.client.host, 
                                                   "endpoint": request.url.path})
         response.status_code = status.HTTP_401_UNAUTHORIZED
@@ -165,6 +175,7 @@ async def fetch_resource(response: Response, request: Request, auth_approval:tup
                 "details": f"{e}"}
 
 
+# Endpoint to unregister a user
 @app.get("/unregister")
 async def unregister(response: Response, request: Request, 
                      auth_approval:tuple[bool,str] = Depends(auth),
@@ -178,6 +189,7 @@ async def unregister(response: Response, request: Request,
         return {"message": f"User {user['email']} unregistered successfully."}
     
     else:
+        # Write to log file in case of unauthorized access
         requests_logger.critical(f"{e}", extra = {"clientip": request.client.host, 
                                                   "endpoint": request.url.path})
         response.status_code = status.HTTP_401_UNAUTHORIZED
@@ -185,6 +197,7 @@ async def unregister(response: Response, request: Request,
                 "details": f"{e}"}
              
 
+# Endpoint for health check
 @app.get("/health")
 async def health():
     return {"Health": "Ok"}

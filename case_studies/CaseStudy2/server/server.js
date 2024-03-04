@@ -1,12 +1,13 @@
+// Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require("path");
 
 
-const app = express();
-const port = process.env.NODE_PORT || 8899;
-const directory = process.env.VOLUME_DIR || "/opt/users";
+const app = express(); // Create an Express application
+const port = process.env.NODE_PORT || 8899; // Set the server port from environment variables or use the default (8899)
+const directory = process.env.VOLUME_DIR || "/opt/users"; // Set the directory for data storage from environment variables or use the default
 // Middleware to parse JSON in the request body
 app.use(bodyParser.json());
 
@@ -21,6 +22,7 @@ app.post('/writeToFile', async (req, res) => {
 
     const fileName = 'data.json';
     
+    // Check if the specified directory exists, create it if not
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory, { recursive: true });
     }
@@ -46,6 +48,7 @@ app.post('/writeToFile', async (req, res) => {
   }
 });
 
+// Start the server and listen on the specified port
 app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);
 });
